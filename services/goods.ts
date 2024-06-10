@@ -1,5 +1,6 @@
+import { Markup } from 'telegraf'
 import { IGood } from '../utils/interfaces/goods'
-import { CSV_COLUMNS } from '../utils/constants'
+import { CALL_TO_ACTION_BUTTON_URL, CSV_COLUMNS } from '../utils/constants'
 import { getLogger } from '../utils/logger'
 import { csvService } from './csv'
 import { openaiService } from './openai'
@@ -69,7 +70,15 @@ async function processOneAndRemove(rows: string[][] | null, fallback?: (message:
         good.combinedOptions ? '\n\n' + good.combinedOptions : ''
     }\n\nШтрихкод: ${good.barcode}`
 
-    await telegramService.postMediaGroup(message, good.imageUrls)
+    if (CALL_TO_ACTION_BUTTON_URL) {
+        const buttons = [Markup.button.url('Замовити зараз', CALL_TO_ACTION_BUTTON_URL)]
+
+        await telegramService.postMediaGroup(good.imageUrls)
+        await telegramService.postMessage(message, buttons)
+    } else {
+        await telegramService.postMediaGroup(good.imageUrls, message)
+    }
+
     csvService.overrideRows(rows)
 }
 

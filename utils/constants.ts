@@ -30,4 +30,5 @@ export const CSV_COLUMNS = {
 }
 
 export const TELEGRAM_CHANNEL_ID = process.env.TELEGRAM_CHANNEL_ID
+export const CALL_TO_ACTION_BUTTON_URL = process.env.CALL_TO_ACTION_BUTTON_URL
 export const SCHEDULE_LABEL_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/

@@ -1,7 +1,12 @@
 import axios from 'axios'
 import fs from 'fs'
 import { Context, Markup, Telegraf } from 'telegraf'
-import { Update, Message, InputFile } from 'telegraf/typings/core/types/typegram'
+import {
+    Update,
+    Message,
+    InputFile,
+    InlineKeyboardButton
+} from 'telegraf/typings/core/types/typegram'
 import { TELEGRAM_CHANNEL_ID, DEFAULT_SESSION_DATA, csvFilePath } from '../utils/constants'
 import { InputMediaPhoto } from 'telegraf/typings/core/types/typegram'
 import { goodsService } from './goods'
@@ -60,21 +65,30 @@ const _prepareMediaItems = async (imageUrls: string[]) => {
     return media
 }
 
-async function postMediaGroup(message: string, imageUrls: string[]) {
+async function postMediaGroup(
+    imageUrls: string[],
+    message?: string,
+    buttons?: InlineKeyboardButton[]
+) {
     if (!TELEGRAM_CHANNEL_ID) {
         throw new Error('No TELEGRAM_CHANNEL_ID specified')
     }
 
     try {
         if (!imageUrls.length) {
-            await postMessage(message)
+            if (message) {
+                await postMessage(message, buttons)
+            }
+
             return
         }
 
         const mediaGroup: InputMediaPhoto[] = await _prepareMediaItems(imageUrls)
 
-        mediaGroup[0].caption = message
-        mediaGroup[0].parse_mode = 'Markdown'
+        if (message) {
+            mediaGroup[0].caption = message
+            mediaGroup[0].parse_mode = 'Markdown'
+        }
 
         await bot.telegram.sendMediaGroup(TELEGRAM_CHANNEL_ID, mediaGroup)
     } catch (error) {
@@ -82,12 +96,17 @@ async function postMediaGroup(message: string, imageUrls: string[]) {
     }
 }
 
-async function postMessage(message: string) {
+async function postMessage(message: string, buttons: InlineKeyboardButton[] = []) {
     if (!TELEGRAM_CHANNEL_ID) {
         throw new Error('No TELEGRAM_CHANNEL_ID specified')
     }
 
-    await bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message)
+    await bot.telegram.sendMessage(TELEGRAM_CHANNEL_ID, message, {
+        parse_mode: 'Markdown',
+        reply_markup: {
+            inline_keyboard: [buttons]
+        }
+    })
 }
 
 const _showMainMenu = (ctx: IBotContext) => {
